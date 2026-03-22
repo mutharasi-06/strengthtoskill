@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<title>Strength to Skill - Code Editor & Skill Analyzer</title>
+
+<link rel="stylesheet" href="style.css">
+
+
+
+</head>
+
+<body>
+
+<h2>Code Editor</h2>
+
+<textarea id="codeEditor" rows="10">print("Hello Strength to Skill")</textarea>
+
+<br>
+
+<label>Select Language:</label>
+
+<select id="language">
+<option value="71">Python 3</option>
+<option value="62">Java</option>
+<option value="63">JavaScript (Node.js)</option>
+</select>
+
+<br>
+
+<button onclick="runCode()">Run Code</button>
+<button onclick="saveProject()">Save Project</button>
+<button onclick="updateProject()">Update Project</button>
+
+<h2>Output</h2>
+
+<pre id="output">Output will appear here...</pre>
+
+<h2>Skill Report</h2>
+
+<pre id="skillReport">Your skill report will appear here...</pre>
+
+<h2>My Projects</h2>
+
+<div id="projectList"></div>
+
+<script>
+
+/* ---------------- Skill Analyzer ---------------- */
+
+let currentProjectId = null;
+
+function evaluateSkills(code){
+
+const skills={
+loops:/for|while/.test(code),
+functions:/def |function /.test(code),
+arrays:/\[|\]/.test(code),
+conditional:/if|else|switch/.test(code),
+debugging:/print|console\.log/.test(code)
+};
+
+const strengths=[];
+const weaknesses=[];
+
+for(const skill in skills){
+if(skills[skill]) strengths.push(skill);
+else weaknesses.push(skill);
+}
+
+return {strengths,weaknesses};
+
+}
+
+/* ---------------- Run Code ---------------- */
+
+async function runCode(){
+
+const userCode=document.getElementById("codeEditor").value;
+const languageId=parseInt(document.getElementById("language").value);
+const outputBox=document.getElementById("output");
+const skillBox=document.getElementById("skillReport");
+
+outputBox.innerText="Running code...";
+skillBox.innerText="Analyzing skills...";
+
+try {
+const response=await fetch(
+"http://localhost:5000/code/run",
+{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({
+code:userCode,
+language_id:languageId
+})
+}
+);
+
+const data=await response.json();
+
+let finalOutput="";
+
+if(data.error) finalOutput=data.error;
+else if(data.stderr) finalOutput=data.stderr;
+else if(data.compile_output) finalOutput=data.compile_output;
+else finalOutput=data.stdout;
+
+outputBox.innerText=finalOutput;
+
+const skillResult=evaluateSkills(userCode);
+
+skillBox.innerText=
+"Strengths: "+skillResult.strengths.join(", ")+"\n"+
+"Weaknesses: "+skillResult.weaknesses.join(", ");
+} catch (error) {
+outputBox.innerText="Error: Could not connect to the backend server. Please make sure the server is running.";
+skillBox.innerText="Error analyzing skills.";
+console.error("Fetch error:", error);
+}
+
+}
+
+/* ---------------- Project Storage ---------------- */
+
+function saveProject(){
+
+const name=prompt("Enter project name", defaultProjectName);
+if(!name) return;
+
+const code=document.getElementById("codeEditor").value;
+
+const projects=JSON.parse(localStorage.getItem("projects")||"[]");
+
+projects.push({
+id:Date.now(),
+name:name,
+code:code
+});
+
+localStorage.setItem("projects",JSON.stringify(projects));
+
+loadProjects();
+
+}
+
+function loadProjects(){
+
+const projects=JSON.parse(localStorage.getItem("projects")||"[]");
+
+let html="<ul>";
+
+projects.forEach(p=>{
+html+=`<li onclick="loadProject(${p.id})">${p.name}</li>`;
+});
+
+html+="</ul>";
+
+document.getElementById("projectList").innerHTML=html;
+
+}
+
+function loadProject(id){
+
+const projects=JSON.parse(localStorage.getItem("projects")||"[]");
+
+const project=projects.find(p=>p.id===id);
+
+if(project){
+
+document.getElementById("codeEditor").value=project.code;
+
+currentProjectId=id;
+
+}
+
+}
+
+let defaultProjectName = "";
+
+window.onload=function(){
+  loadProjects();
+  const params = new URLSearchParams(window.location.search);
+  const title = params.get("title");
+  const desc = params.get("desc");
+  if(title) {
+    defaultProjectName = title;
+    
+    // Check default language to format comment appropriately
+    const langSelect = document.getElementById("language");
+    const langId = langSelect ? langSelect.value : "71"; 
+    
+    // 71 is Python, 62 is Java, 63 is JS. Python uses # for comments.
+    const commentChar = (langId === "71") ? "#" : "//";
+    
+    document.getElementById("codeEditor").value = `${commentChar} Problem: ${title}\n${commentChar} Description: ${desc}\n\n`;
+  }
+};
+
+</script>
+
+</body>
+</html>
