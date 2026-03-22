@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <title>Quiz System Login</title>
+
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        body {
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #1d2671, #c33764);
+            overflow: hidden;
+        }
+
+        /* ANIMATED TITLE */
+
+        .title {
+            position: absolute;
+            top: 40px;
+            font-size: 40px;
+            font-weight: bold;
+            color: white;
+            letter-spacing: 3px;
+            animation: glow 2s infinite alternate;
+        }
+
+        @keyframes glow {
+
+            from {
+                text-shadow: 0 0 10px white, 0 0 20px #00f2fe;
+            }
+
+            to {
+                text-shadow: 0 0 20px white, 0 0 40px #ff00ff;
+            }
+
+        }
+
+        /* FLOATING ICONS */
+
+        .icons span {
+            position: absolute;
+            font-size: 30px;
+            animation: float 15s linear infinite;
+            opacity: 0.7;
+        }
+
+        .icons span:nth-child(1) {
+            left: 10%;
+            top: 90%;
+        }
+
+        .icons span:nth-child(2) {
+            left: 25%;
+            top: 95%;
+        }
+
+        .icons span:nth-child(3) {
+            left: 40%;
+            top: 92%;
+        }
+
+        .icons span:nth-child(4) {
+            left: 60%;
+            top: 94%;
+        }
+
+        .icons span:nth-child(5) {
+            left: 75%;
+            top: 96%;
+        }
+
+        .icons span:nth-child(6) {
+            left: 90%;
+            top: 93%;
+        }
+
+        @keyframes float {
+
+            0% {
+                transform: translateY(0);
+            }
+
+            100% {
+                transform: translateY(-120vh);
+            }
+
+        }
+
+        /* CARD */
+
+        .container {
+            width: 420px;
+            perspective: 1000px;
+        }
+
+        .card {
+            width: 100%;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(15px);
+
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+
+            transition: transform 0.8s;
+            transform-style: preserve-3d;
+        }
+
+        .card.flip {
+            transform: rotateY(180deg);
+        }
+
+        /* HEADINGS */
+
+        h2 {
+            margin-bottom: 20px;
+            color: white;
+        }
+
+        /* INPUT */
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 12px 0;
+            border-radius: 10px;
+            border: none;
+            outline: none;
+            background: rgba(255, 255, 255, 0.9);
+            transition: 0.3s;
+        }
+
+        input:focus {
+            transform: scale(1.05);
+            box-shadow: 0 0 10px white;
+        }
+
+        /* BUTTON */
+
+        button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 12px;
+            border: none;
+            border-radius: 10px;
+
+            background: linear-gradient(45deg, #00c6ff, #0072ff);
+            color: white;
+            font-size: 16px;
+
+            cursor: pointer;
+            transition: 0.4s;
+        }
+
+        button:hover {
+
+            transform: scale(1.1);
+
+            background: linear-gradient(45deg, #ff512f, #dd2476);
+
+            box-shadow:
+                0 0 10px #ff512f,
+                0 0 20px #ff512f,
+                0 0 40px #ff512f;
+
+        }
+    </style>
+
+    <script>
+
+        let role = "";
+
+        /* ROLE SELECT */
+
+        function selectRole(r) {
+
+            role = r;
+
+            document.getElementById("roleSelect").style.display = "none";
+            document.getElementById("choice").style.display = "block";
+
+        }
+
+        /* SHOW LOGIN */
+
+        function showLogin() {
+
+            document.getElementById("choice").style.display = "none";
+            document.getElementById("login").style.display = "block";
+
+        }
+
+        /* SHOW SIGNUP */
+
+        function showSignup() {
+
+            document.getElementById("choice").style.display = "none";
+            document.getElementById("signup").style.display = "block";
+
+        }
+
+        /* SIGNUP */
+
+        function signup() {
+
+            let email = document.getElementById("email").value;
+            let pass = document.getElementById("password").value;
+            let confirm = document.getElementById("confirm").value;
+
+            if (pass !== confirm) {
+                alert("Passwords do not match");
+                return;
+            }
+
+            localStorage.setItem(role + "_email", email);
+            localStorage.setItem(role + "_password", pass);
+
+            alert("Signup Successful");
+
+            document.getElementById("signup").style.display = "none";
+            document.getElementById("login").style.display = "block";
+
+        }
+
+        /* LOGIN */
+
+        function login() {
+
+            let email = document.getElementById("loginEmail").value;
+            let pass = document.getElementById("loginPassword").value;
+
+            let storedEmail = localStorage.getItem(role + "_email");
+            let storedPass = localStorage.getItem(role + "_password");
+
+            if (email === storedEmail && pass === storedPass) {
+
+                if (role === "admin") {
+                    window.location.href = "admin.html";
+                }
+
+                if (role === "student") {
+                    window.location.href = "quizcategory.html";
+                }
+
+            }
+            else {
+
+                alert("Invalid Login");
+
+            }
+
+        }
+
+    </script>
+
+</head>
+
+<body>
+
+    <div class="title">QUIZ SYSTEM</div>
+
+    <!-- FLOATING ICONS -->
+
+    <div class="icons">
+
+        <span>📘</span>
+        <span>📗</span>
+        <span>📙</span>
+        <span>🧠</span>
+        <span>🎯</span>
+        <span>💡</span>
+
+    </div>
+
+    <div class="container">
+
+        <div class="card">
+
+            <!-- ROLE -->
+
+            <div id="roleSelect">
+
+                <h2>Select Role</h2>
+
+                <button onclick="selectRole('admin')">Admin</button>
+
+                <button onclick="selectRole('student')">Student</button>
+
+            </div>
+
+            <!-- CHOICE -->
+
+            <div id="choice" style="display:none">
+
+                <h2>Account</h2>
+
+                <button onclick="showLogin()">Login</button>
+
+                <button onclick="showSignup()">Sign Up</button>
+
+            </div>
+
+            <!-- SIGNUP -->
+
+            <div id="signup" style="display:none">
+
+                <h2>Create Account</h2>
+
+                <input type="email" id="email" placeholder="Email">
+
+                <input type="password" id="password" placeholder="Password">
+
+                <input type="password" id="confirm" placeholder="Confirm Password">
+
+                <button onclick="signup()">Sign Up</button>
+
+            </div>
+
+            <!-- LOGIN -->
+
+            <div id="login" style="display:none">
+
+                <h2>Login</h2>
+
+                <input type="email" id="loginEmail" placeholder="Email">
+
+                <input type="password" id="loginPassword" placeholder="Password">
+
+                <button onclick="login()">Login</button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</body>
+
+</html>

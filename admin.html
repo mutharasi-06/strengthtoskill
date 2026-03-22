@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<title>Admin - Add Quiz Questions</title>
+
+<style>
+
+body{
+font-family:Arial;
+text-align:center;
+margin-top:40px;
+}
+
+input, select{
+width:300px;
+padding:8px;
+margin:6px;
+}
+
+button{
+padding:10px 20px;
+margin-top:10px;
+cursor:pointer;
+}
+
+#questionsList{
+margin-top:20px;
+text-align:left;
+width:500px;
+margin-left:auto;
+margin-right:auto;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h2>Administrator Panel - Add Questions</h2>
+
+<select id="category">
+<option value="">Select Question Category</option>
+<option value="aptitude_questions">Aptitude</option>
+<option value="data_analysis_questions">Data Analysis</option>
+<option value="fullstack_questions">Full Stack</option>
+</select><br>
+
+<input type="text" id="question" placeholder="Enter Question"><br>
+<input type="text" id="opt1" placeholder="Option 1"><br>
+<input type="text" id="opt2" placeholder="Option 2"><br>
+<input type="text" id="opt3" placeholder="Option 3"><br>
+<input type="text" id="opt4" placeholder="Option 4"><br>
+<input type="text" id="answer" placeholder="Correct Answer"><br>
+
+<button onclick="addQuestion()">Add Question</button>
+<button onclick="nextQuestion()">Next Question</button>
+<button onclick="logout()">Logout</button>
+
+<h3>Stored Questions</h3>
+
+<div id="questionsList"></div>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+
+const firebaseConfig = {
+apiKey: "AIzaSyAeFrQa1ytdOlqxaNakx3v703LSbqQFSd0",
+authDomain: "quiz-system-dd8b6.firebaseapp.com",
+projectId: "quiz-system-dd8b6",
+storageBucket: "quiz-system-dd8b6.firebasestorage.app",
+messagingSenderId: "317332860631",
+appId: "1:317332860631:web:99334cae10f105cecb8a92"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+window.addQuestion = async function(){
+
+let category = document.getElementById("category").value;
+
+let question = document.getElementById("question").value;
+let opt1 = document.getElementById("opt1").value;
+let opt2 = document.getElementById("opt2").value;
+let opt3 = document.getElementById("opt3").value;
+let opt4 = document.getElementById("opt4").value;
+let answer = document.getElementById("answer").value;
+
+if(category===""){
+alert("Please select a category");
+return;
+}
+
+await addDoc(collection(db, category),{
+
+question:question,
+opt1:opt1,
+opt2:opt2,
+opt3:opt3,
+opt4:opt4,
+answer:answer
+
+});
+
+alert("Question stored in "+category);
+
+displayQuestions(category);
+
+}
+
+window.nextQuestion = function(){
+location.reload();
+}
+
+window.logout = function(){
+window.location.href="index.html";
+}
+
+async function displayQuestions(category){
+
+let list = document.getElementById("questionsList");
+
+list.innerHTML="";
+
+if(!category) return;
+
+const querySnapshot = await getDocs(collection(db,category));
+
+let index=1;
+
+querySnapshot.forEach((doc)=>{
+
+let q = doc.data();
+
+list.innerHTML += "<p><b>Q"+index+":</b> "+q.question+"</p>";
+
+index++;
+
+});
+
+}
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<title>Quiz</title>
+</head>
+
+<body>
+
+<h2 id="quizTitle"></h2>
+
+<div id="questions"></div>
+
+<button id="submitBtn" onclick="submitQuiz()" style="margin-top:30px; padding:15px 40px; font-size:18px; border:none; border-radius:10px; background:#ff512f; color:white; cursor:pointer;">Submit Quiz</button>
+
+<h2 id="result" style="margin-top:20px; font-size:24px;"></h2>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+
+const firebaseConfig = {
+apiKey: "AIzaSyAeFrQa1ytdOlqxaNakx3v703LSbqQFSd0",
+authDomain: "quiz-system-dd8b6.firebaseapp.com",
+projectId: "quiz-system-dd8b6"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+/* GET CATEGORY FROM URL */
+
+const params = new URLSearchParams(window.location.search);
+
+const category = params.get("category");
+
+/* DISPLAY TITLE */
+
+document.getElementById("quizTitle").innerHTML =
+"Quiz : " + category.replace("_"," ").toUpperCase();
+
+/* FETCH QUESTIONS */
+
+const querySnapshot = await getDocs(collection(db,category));
+
+let html="";
+
+let index=1;
+
+/* store correct answers */
+let answers = {};
+
+querySnapshot.forEach((doc)=>{
+
+let q = doc.data();
+
+/* save correct answer */
+answers[doc.id] = q.answer;
+
+html += `
+<p><b>Q${index}:</b> ${q.question}</p>
+
+<input type="radio" name="${doc.id}" value="${q.opt1}"> ${q.opt1}<br>
+<input type="radio" name="${doc.id}" value="${q.opt2}"> ${q.opt2}<br>
+<input type="radio" name="${doc.id}" value="${q.opt3}"> ${q.opt3}<br>
+<input type="radio" name="${doc.id}" value="${q.opt4}"> ${q.opt4}<br><br>
+`;
+
+index++;
+
+});
+
+document.getElementById("questions").innerHTML = html;
+
+/* Submit quiz */
+
+window.submitQuiz = async function(){
+  try {
+    let score = 0;
+    let total = Object.keys(answers).length;
+    let breakdown = "";
+
+    for(let id in answers){
+      let radios = document.getElementsByName(id);
+      let selectedValue = null;
+      for (let i = 0; i < radios.length; i++) {
+        if (radios[i].checked) {
+          selectedValue = radios[i].value;
+          break;
+        }
+      }
+
+      let expectedStr = String(answers[id]).trim().toLowerCase();
+      let actualStr = selectedValue ? String(selectedValue).trim().toLowerCase() : "none";
+      
+      let isCorrect = false;
+      if (selectedValue && actualStr === expectedStr) {
+        isCorrect = true;
+      } else if (expectedStr === "1" || expectedStr === "a" || expectedStr === "opt1") {
+        if (radios.length > 0 && radios[0].checked) isCorrect = true;
+      } else if (expectedStr === "2" || expectedStr === "b" || expectedStr === "opt2") {
+        if (radios.length > 1 && radios[1].checked) isCorrect = true;
+      } else if (expectedStr === "3" || expectedStr === "c" || expectedStr === "opt3") {
+        if (radios.length > 2 && radios[2].checked) isCorrect = true;
+      } else if (expectedStr === "4" || expectedStr === "d" || expectedStr === "opt4") {
+        if (radios.length > 3 && radios[3].checked) isCorrect = true;
+      }
+      
+      if (isCorrect) {
+        score++;
+      } else {
+        breakdown += `<br><span style="color:yellow; font-size:16px;">Expected [<b>${answers[id]}</b>] but you selected [<b>${selectedValue || "nothing"}</b>]</span>`;
+      }
+    }
+
+    document.getElementById("result").innerHTML = "Your Score: " + score + " / " + total + (breakdown ? "<br><b>Debug Info for mismatches:</b>" + breakdown : "");
+    
+    let percentage = (score / total) * 100;
+    let level = "Beginner";
+    if (percentage >= 80) level = "Advanced";
+    else if (percentage >= 50) level = "Intermediate";
+    
+    document.getElementById("result").innerHTML += `<br><br><button onclick="window.location.href='projects.html?level=${level}'" style="padding:12px 25px; font-size:18px; border:none; border-radius:10px; background:linear-gradient(45deg, #00c6ff, #0072ff); color:white; cursor:pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">View Real-World Problems for ${level}</button>`;
+    
+    window.scrollTo(0, document.body.scrollHeight);
+    
+    // Call AI to get analysis
+    try {
+      document.getElementById("result").innerHTML += "<br><br><i>Analyzing your performance with AI...</i>";
+      const aiResponse = await fetch("http://localhost:5000/api/ai/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ category: category, score: score, total: total })
+      });
+      const aiData = await aiResponse.json();
+      if (aiData.analysis) {
+        document.getElementById("result").innerHTML += "<br><br><div style='background:#f4f4f9; color:#333; padding:15px; border-radius:8px; border-left:5px solid #ff512f;'><b>AI Analysis:</b><br>" + aiData.analysis + "</div>";
+      } else {
+        document.getElementById("result").innerHTML += "<br><br><b>AI Analysis:</b><br>" + (aiData.error || "Failed to analyze.");
+      }
+      window.scrollTo(0, document.body.scrollHeight);
+    } catch (aiErr) {
+      document.getElementById("result").innerHTML += "<br><br><b>AI Analysis:</b><br>Error connecting to AI service.";
+      console.error(aiErr);
+    }
+    
+  } catch (err) {
+    alert("Error calculating score: " + err.message);
+    document.getElementById("result").innerHTML = "Error calculating score.";
+  }
+}
+
+</script>
+
+</body>
+
+</html>

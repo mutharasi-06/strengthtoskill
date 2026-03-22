@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Real World Problems</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { 
+            min-height: 100vh; 
+            background: linear-gradient(135deg, #1d2671, #c33764); 
+            display: flex; flex-direction: column; align-items: center; 
+            color: white; padding: 40px 20px; 
+        }
+        h1 { margin-bottom: 30px; font-size: 36px; text-shadow: 0 0 10px white; }
+        .grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; max-width: 1000px; }
+        .project-card { 
+            background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(10px); 
+            padding: 25px; border-radius: 15px; width: 300px; 
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3); transition: transform 0.3s;
+        }
+        .project-card:hover { transform: translateY(-5px); background: rgba(255, 255, 255, 0.25); }
+        .project-card h2 { color: #00f2fe; margin-bottom: 10px; font-size: 22px; }
+        .project-card p { font-size: 14px; line-height: 1.5; margin-bottom: 15px; }
+        .level-badge { 
+            display: inline-block; padding: 5px 12px; border-radius: 20px; 
+            background: #ff512f; font-size: 12px; font-weight: bold; 
+        }
+        #message { margin-top: 20px; font-size: 18px; }
+        .tech-list { margin-top: 10px; font-size: 12px; color: #ddd; }
+    </style>
+</head>
+<body>
+
+    <h1 id="pageTitle">Recommended Real-World Problems</h1>
+    <div id="message">Loading projects...</div>
+    <div class="grid" id="projectGrid"></div>
+
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        let level = params.get("level") || "Beginner";
+        document.getElementById("pageTitle").innerText = "Recommended Problems for: " + level;
+
+        async function fetchProjects() {
+            try {
+                const res = await fetch("http://localhost:5000/projects/recommend/" + level);
+                const data = await res.json();
+                
+                const grid = document.getElementById("projectGrid");
+                const msg = document.getElementById("message");
+                
+                if(data.message) {
+                    msg.innerText = data.message;
+                    return;
+                }
+                
+                msg.style.display = "none";
+                let html = "";
+                data.forEach(p => {
+                    const techs = p.technologies ? p.technologies.join(", ") : "";
+                    html += `
+                        <div class="project-card">
+                            <h2>${p.title}</h2>
+                            <p>${p.description}</p>
+                            <span class="level-badge">${p.level}</span>
+                            ${techs ? `<div class="tech-list">Tech: ${techs}</div>` : ''}
+                            <button onclick="solveChallenge('${encodeURIComponent(p.title)}', '${encodeURIComponent(p.description)}')" style="margin-top:15px; width:100%; padding:10px; border:none; border-radius:8px; background:#00f2fe; color:black; font-weight:bold; cursor:pointer;">Solve Challenge</button>
+                        </div>
+                    `;
+                });
+                grid.innerHTML = html;
+            } catch(e) {
+                document.getElementById("message").innerText = "Error loading projects.";
+                console.error(e);
+            }
+        }
+        
+        function solveChallenge(encodedTitle, encodedDesc) {
+            window.location.href = `../frontend/run.html?title=${encodedTitle}&desc=${encodedDesc}`;
+        }
+
+        fetchProjects();
+    </script>
+</body>
+</html>

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head><title>Dump</title></head>
+<body>
+<pre id="dump"></pre>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const firebaseConfig = {
+apiKey: "AIzaSyAeFrQa1ytdOlqxaNakx3v703LSbqQFSd0",
+authDomain: "quiz-system-dd8b6.firebaseapp.com",
+projectId: "quiz-system-dd8b6",
+storageBucket: "quiz-system-dd8b6.firebasestorage.app",
+messagingSenderId: "317332860631",
+appId: "1:317332860631:web:99334cae10f105cecb8a92"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+async function dump() {
+    let out = "";
+    
+    // Dump Fullstack
+    out += "====== FULLSTACK ======\n";
+    let snapshot = await getDocs(collection(db, "fullstack_questions"));
+    snapshot.forEach(doc => {
+        let q = doc.data();
+        out += `Q: ${q.question} | Opt1: ${q.opt1} | Answer in DB: '${q.answer}'\n`;
+    });
+    
+    // Dump Data Analysis
+    out += "====== DATA ANALYSIS ======\n";
+    snapshot = await getDocs(collection(db, "data_analysis_questions"));
+    snapshot.forEach(doc => {
+        let q = doc.data();
+        out += `Q: ${q.question} | Opt1: ${q.opt1} | Answer in DB: '${q.answer}'\n`;
+    });
+
+    // Dump Aptitude
+    out += "====== APTITUDE ======\n";
+    snapshot = await getDocs(collection(db, "aptitude_questions"));
+    snapshot.forEach(doc => {
+        let q = doc.data();
+        out += `Q: ${q.question} | Opt1: ${q.opt1} | Answer in DB: '${q.answer}'\n`;
+    });
+    
+    document.getElementById("dump").innerText = out;
+}
+dump();
+</script>
+</body>
+</html>

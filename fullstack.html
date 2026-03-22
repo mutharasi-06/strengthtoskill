@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+<title>Full Stack Quiz</title>
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:'Segoe UI',sans-serif;
+}
+
+body{
+min-height:100vh;
+background:linear-gradient(135deg,#4facfe,#00f2fe);
+display:flex;
+flex-direction:column;
+align-items:center;
+color:white;
+}
+
+/* TITLE */
+
+h1{
+margin-top:40px;
+font-size:42px;
+letter-spacing:2px;
+animation:glow 2s infinite alternate;
+}
+
+@keyframes glow{
+from{
+text-shadow:0 0 10px white,0 0 20px #00f2fe;
+}
+to{
+text-shadow:0 0 20px white,0 0 40px #ff00ff;
+}
+}
+
+/* QUESTIONS CONTAINER */
+
+#questions{
+width:70%;
+margin-top:30px;
+}
+
+/* QUESTION CARD */
+
+.question{
+background:rgba(255,255,255,0.2);
+backdrop-filter:blur(10px);
+padding:20px;
+margin-top:20px;
+border-radius:15px;
+box-shadow:0 10px 25px rgba(0,0,0,0.3);
+}
+
+/* OPTIONS */
+
+label{
+display:block;
+margin-top:10px;
+padding:12px;
+border-radius:10px;
+background:rgba(255,255,255,0.4);
+cursor:pointer;
+}
+
+label:hover{
+background:white;
+color:black;
+}
+
+/* SUBMIT BUTTON */
+
+#submitBtn{
+margin-top:40px;
+padding:15px 40px;
+font-size:18px;
+border:none;
+border-radius:10px;
+background:#ff512f;
+color:white;
+cursor:pointer;
+}
+
+#result{
+margin-top:20px;
+font-size:24px;
+}
+
+</style>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, collection, getDocs }
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const firebaseConfig = {
+apiKey: "AIzaSyAeFrQa1ytdOlqxaNakx3v703LSbqQFSd0",
+authDomain: "quiz-system-dd8b6.firebaseapp.com",
+projectId: "quiz-system-dd8b6",
+storageBucket: "quiz-system-dd8b6.firebasestorage.app",
+messagingSenderId: "317332860631",
+appId: "1:317332860631:web:99334cae10f105cecb8a92"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+/* store correct answers */
+let answers = {};
+
+async function loadQuestions(){
+
+const questionsDiv = document.getElementById("questions");
+
+questionsDiv.innerHTML="Loading questions...";
+
+const querySnapshot = await getDocs(collection(db,"fullstack_questions"));
+
+questionsDiv.innerHTML="";
+
+querySnapshot.forEach((doc)=>{
+
+const data = doc.data();
+
+/* store correct answer */
+answers[doc.id] = data.answer;
+
+questionsDiv.innerHTML += `
+
+<div class="question">
+
+<h3>${data.question}</h3>
+
+<label><input type="radio" name="${doc.id}" value="${data.opt1}"> ${data.opt1}</label>
+<label><input type="radio" name="${doc.id}" value="${data.opt2}"> ${data.opt2}</label>
+<label><input type="radio" name="${doc.id}" value="${data.opt3}"> ${data.opt3}</label>
+<label><input type="radio" name="${doc.id}" value="${data.opt4}"> ${data.opt4}</label>
+
+</div>
+
+`;
+
+});
+
+}
+
+/* Submit Quiz */
+
+window.submitQuiz = async function(){
+  try {
+    let score = 0;
+    let total = Object.keys(answers).length;
+    let breakdown = "";
+
+    for(let id in answers){
+      let radios = document.getElementsByName(id);
+      let selectedValue = null;
+      for (let i = 0; i < radios.length; i++) {
+        if (radios[i].checked) {
+          selectedValue = radios[i].value;
+          break;
+        }
+      }
+
+      let expectedStr = String(answers[id]).trim().toLowerCase();
+      let actualStr = selectedValue ? String(selectedValue).trim().toLowerCase() : "none";
+      
+      let isCorrect = false;
+      if (selectedValue && actualStr === expectedStr) {
+        isCorrect = true;
+      } else if (expectedStr === "1" || expectedStr === "a" || expectedStr === "opt1") {
+        if (radios.length > 0 && radios[0].checked) isCorrect = true;
+      } else if (expectedStr === "2" || expectedStr === "b" || expectedStr === "opt2") {
+        if (radios.length > 1 && radios[1].checked) isCorrect = true;
+      } else if (expectedStr === "3" || expectedStr === "c" || expectedStr === "opt3") {
+        if (radios.length > 2 && radios[2].checked) isCorrect = true;
+      } else if (expectedStr === "4" || expectedStr === "d" || expectedStr === "opt4") {
+        if (radios.length > 3 && radios[3].checked) isCorrect = true;
+      }
+      
+      if (isCorrect) {
+        score++;
+      } else {
+        breakdown += `<br><span style="color:yellow; font-size:16px;">Expected [<b>${answers[id]}</b>] but you selected [<b>${selectedValue || "nothing"}</b>]</span>`;
+      }
+    }
+
+    document.getElementById("result").innerHTML = "Your Score: " + score + " / " + total + (breakdown ? "<br><b>Debug Info for mismatches:</b>" + breakdown : "");
+    
+    let percentage = (score / total) * 100;
+    let level = "Beginner";
+    if (percentage >= 80) level = "Advanced";
+    else if (percentage >= 50) level = "Intermediate";
+    
+    document.getElementById("result").innerHTML += `<br><br><button onclick="window.location.href='projects.html?level=${level}'" style="padding:12px 25px; font-size:18px; border:none; border-radius:10px; background:linear-gradient(45deg, #00c6ff, #0072ff); color:white; cursor:pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">View Real-World Problems for ${level}</button>`;
+    
+    window.scrollTo(0, document.body.scrollHeight);
+    
+    // Call AI to get analysis
+    try {
+      document.getElementById("result").innerHTML += "<br><br><i>Analyzing your performance with AI...</i>";
+      const aiResponse = await fetch("http://localhost:5000/api/ai/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ category: "fullstack", score: score, total: total })
+      });
+      const aiData = await aiResponse.json();
+      if (aiData.analysis) {
+        document.getElementById("result").innerHTML += "<br><br><div style='background:rgba(255,255,255,0.2); backdrop-filter:blur(10px); padding:15px; border-radius:8px; border-left:5px solid #ff512f;'><b>AI Analysis:</b><br>" + aiData.analysis + "</div>";
+      } else {
+        document.getElementById("result").innerHTML += "<br><br><b>AI Analysis:</b><br>" + (aiData.error || "Failed to analyze.");
+      }
+      window.scrollTo(0, document.body.scrollHeight);
+    } catch (aiErr) {
+      document.getElementById("result").innerHTML += "<br><br><b>AI Analysis:</b><br>Error connecting to AI service.";
+      console.error(aiErr);
+    }
+    
+  } catch (err) {
+    alert("Error calculating score: " + err.message);
+    document.getElementById("result").innerHTML = "Error calculating score.";
+  }
+}
+
+window.onload = loadQuestions;
+
+</script>
+
+</head>
+
+<body>
+
+<h1>Full Stack Section</h1>
+
+<div id="questions"></div>
+
+<button id="submitBtn" onclick="submitQuiz()">Submit Quiz</button>
+
+<h2 id="result"></h2>
+
+</body>
+</html>

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+<title>Quiz Categories</title>
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:'Segoe UI',sans-serif;
+}
+
+/* BACKGROUND */
+
+body{
+height:100vh;
+display:flex;
+justify-content:center;
+align-items:center;
+background:linear-gradient(135deg,#4facfe,#00f2fe);
+color:white;
+}
+
+/* GLASS CARD */
+
+.container{
+
+background:rgba(255,255,255,0.2);
+backdrop-filter:blur(10px);
+
+padding:50px;
+border-radius:20px;
+
+text-align:center;
+
+box-shadow:0 10px 30px rgba(0,0,0,0.3);
+
+}
+
+/* TITLE */
+
+h1{
+
+font-size:40px;
+margin-bottom:40px;
+
+animation:glow 2s infinite alternate;
+
+}
+
+@keyframes glow{
+
+from{
+text-shadow:0 0 10px white,0 0 20px #00f2fe;
+}
+
+to{
+text-shadow:0 0 20px white,0 0 40px #ff00ff;
+}
+
+}
+
+/* BUTTON */
+
+button{
+
+width:220px;
+height:55px;
+
+margin:15px;
+
+font-size:18px;
+
+border:none;
+border-radius:12px;
+
+background:linear-gradient(45deg,#ff512f,#dd2476);
+
+color:white;
+
+cursor:pointer;
+
+transition:0.4s;
+
+}
+
+/* BUTTON HOVER */
+
+button:hover{
+
+transform:scale(1.1);
+
+box-shadow:
+0 0 10px #ff512f,
+0 0 20px #ff512f,
+0 0 40px #ff512f;
+
+}
+
+</style>
+
+<script>
+
+function openAptitude(){
+window.location.href="aptitude.html";
+}
+
+function openDataAnalysis(){
+window.location.href="dataanalysis.html";
+}
+
+function openFullStack(){
+window.location.href="fullstack.html";
+}
+
+</script>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>Select Quiz Category</h1>
+
+<button onclick="openAptitude()">Aptitude</button>
+
+<button onclick="openDataAnalysis()">Data Analysis</button>
+
+<button onclick="openFullStack()">Full Stack</button>
+
+</div>
+
+</body>
+</html>
