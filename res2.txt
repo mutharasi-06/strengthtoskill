@@ -1,0 +1,4 @@
+The student demonstrates a solid grasp of basic HTML document structure and text formatting tags, but they struggle with more advanced elements like semantic layouts and form attributes. They should focus on studying the purpose of HTML5 semantic tags (like `<article>` and `<nav>`) and learning how to properly link labels to form inputs to improve both accessibility and functionality.
+
+**Practice Exercise:**
+Create a contact form inside a `<section>` element that includes a `<label>` for a required email input field, a dropdown `<select>` menu with three options, and a submit button.
